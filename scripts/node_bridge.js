@@ -12,9 +12,15 @@ Will brython replace Cython one day?  Only time will tell.
 
 var fs = require('fs');
 
-document={};
-window={};
+document={
+  getElementsByTagName: function() { return []; }
+};
+window={}
+window.setTimeout = setTimeout
 window.navigator={}
+window.location = {
+  href: '/'
+}
 document.$py_src = {}
 document.$debug = 0
 
@@ -30,40 +36,6 @@ __BRYTHON__.modules = {}
 // Read and eval library
 jscode = fs.readFileSync('../src/brython.js','utf8');
 eval(jscode);
-
-//function node_import(module,alias,names) {
-function $import_single(module) {
-  var search_path=['../src/libs', '../src/Lib'];
-  var ext=['.js', '.py'];
-  var mods=[module, module+'/__init__'];
-
-  for(var i=0, _len_i = search_path.length; i < _len_i; i++) {
-     for (var j=0, _len_j = ext.length; j < _len_j; j++) {
-         for (var k=0, _len_k = mods.length; k < _len_k; k++) {
-             var path=search_path[i]+'/'+mods[k]+ext[j]
-
-             //console.log("searching for " + path);
-             var module_contents;
-             try {
-               module_contents=fs.readFileSync(path, 'utf8')
-             } catch(err) {}
-             if (module_contents !== undefined) {
-                console.log("imported " + module)
-                //console.log(module_contents);
-                if (ext[j] == '.js') {
-                   return $import_js_module(module,alias,names,path,module_contents)
-                }
-                return $import_py_module(module,alias,names,path,module_contents)
-             }
-         }
-     }
-  }
-  console.log("error time!");
-  res = Error()
-  res.name = 'NotFoundError'
-  res.message = "No module named '"+module+"'"
-  throw res
-}
 
 $compile_python=function(module_contents,module) {
     var root = __BRYTHON__.py2js(module_contents,module)
@@ -136,14 +108,14 @@ $compile_python=function(module_contents,module) {
 function execute_python_script(filename) {
   _py_src=fs.readFileSync(filename, 'utf8')
   __BRYTHON__.$py_module_path['__main__']='./'
-  var root = __BRYTHON__.py2js(_py_src,'__main__')
+  var root = __BRYTHON__.py2js(_py_src,'__main__', '__main__', '__builtins__')
   var js = root.to_js()
-  //console.log(js);
+  console.log(js);
   eval(js);
 }
 
 //console.log("try to execute compile script");
-
+__BRYTHON__.$py_src = __BRYTHON__.$py_src || {}
 __BRYTHON__.$py_module_path = __BRYTHON__.$py_module_path || {}
 __BRYTHON__.$py_module_alias = __BRYTHON__.$py_module_alias || {}
 __BRYTHON__.exception_stack = __BRYTHON__.exception_stack || []
@@ -155,6 +127,21 @@ __BRYTHON__.compile_python=$compile_python
 __BRYTHON__.debug = 0
 __BRYTHON__.$options = {}
 __BRYTHON__.$options.debug = 0
+
+
+function download_module(module,path){
+    var $path = '../src' + path
+
+    var contents;
+    try {
+      contents = fs.readFileSync($path, 'utf8')
+    } catch(err) {
+      return __BRYTHON__.builtins.FileNotFoundError("No module named '"+module+"'")
+    }
+    return contents;
+}
+
+__BRYTHON__.$download_module = download_module
 
 // other import algs don't work in node
 //import_funcs=[node_import]

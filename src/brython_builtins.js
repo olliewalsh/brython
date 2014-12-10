@@ -3,8 +3,8 @@ var __BRYTHON__=__BRYTHON__ || {}  // global object with brython built-ins
 ;(function($B) {
 
 // Get url of this script brython_builtins.js
-var scripts = document.getElementsByTagName('script')
-var this_url = scripts[scripts.length-1].src
+var scripts = document.getElementsByTagName('script');
+var this_url = scripts.length ? scripts[scripts.length-1].src : '/brython.js'
 var elts = this_url.split('/')
 elts.pop()
 // brython_path is the url of the directory holding brython core scripts

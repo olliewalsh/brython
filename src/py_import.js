@@ -104,7 +104,7 @@ function $download_module(module,url){
 $B.$download_module=$download_module
 
 function import_js(module,path) {
-    try{var module_contents=$download_module(module.name, path)}
+    try{var module_contents=$B.$download_module(module.name, path)}
     catch(err){return null}
     run_js(module,path,module_contents)
     return true
@@ -146,8 +146,9 @@ function show_ns(){
 function import_py(module,path,package){
     // import Python module at specified path
     try{
-        var module_contents=$download_module(module.name, path)
+        var module_contents=$B.$download_module(module.name, path)
     }catch(err){
+        console.log("import_py("+module+","+path+","+package+")")
         return null
     }
     $B.imported[module.name].$package = module.is_package
